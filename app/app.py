@@ -23,6 +23,8 @@ tornado.options.define("redis_host", default="localhost")
 tornado.options.define("redis_port", default="6379")
 tornado.options.define("debug", default=True)
 
+"""
+#!!! All of these functions have been moved to utility scripts.
 class UserHandler(tornado.web.RequestHandler):
     def get(self, cloud_id):
         user_obj = self.application.settings['redis'].get(cloud_id)
@@ -71,6 +73,7 @@ class UserHandler(tornado.web.RequestHandler):
             'status': 'success',
             'user' : user_obj,
         })
+"""
 
 class EventHandler(tornado.web.RequestHandler):
     def post(self):
@@ -84,7 +87,7 @@ class EventHandler(tornado.web.RequestHandler):
 application = tornado.web.Application([
         # (r"/", tornado.web.RedirectHandler, {'url': '/home'}),
         (r"/api/event/", EventHandler),
-        (r"/api/user/(.*?)", UserHandler),
+        # (r"/api/user/(.*?)", UserHandler),
     ],
     debug=options.debug,
     redis=redis.StrictRedis(host=options.redis_host, port=options.redis_port, db=0),
