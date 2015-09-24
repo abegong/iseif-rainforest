@@ -60,12 +60,20 @@ The four methods that make API calls are scaffolded, but not built yet:
 	Wrap the whole thing in a tornado server
 	Add a tornado method to populate redis
 
+	Create a fake user data set
+
+	Suppress wait_time
+	Get run_logger working with redis
+	Suppress push_next_request_to_queue
+
+
 ## Next steps:
+
+	Develop triggering script
+	Migrate wait_time to separate triggering script
 
 	Dockerize it
 	Add configs for redis, SNS, rainforest, S3, etc.
-
-	Create a fake user data set
 
 	Write a fake fetch_data method
 	Write a *real* fetch_data method

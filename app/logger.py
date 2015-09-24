@@ -37,8 +37,8 @@ class EagleDataLogger(object):
         log_filename = cls.get_log_filename(user_info, now)
 
         #Wait a little while
-        wait_time = cls.get_wait_time(user_info["last_timestamp"], now)
-        time.sleep(wait_time)
+        # wait_time = cls.get_wait_time(user_info["last_timestamp"], now)
+        # time.sleep(wait_time)
 
         #Fetch data
         rainforest_data = cls.fetch_data(user_info, config['last_timestamp'])
@@ -54,10 +54,10 @@ class EagleDataLogger(object):
             cls.rotate_log_to_s3(user_info, user_info['last_timestamp'])
 
         #Add new config entry to queue
-        cls.push_next_request_to_queue({
-            'cloud_id' : user_info['cloud_id'],
-            'last_timestamp' : last_timestamp,
-        })
+        # cls.push_next_request_to_queue({
+        #     'cloud_id' : user_info['cloud_id'],
+        #     'last_timestamp' : last_timestamp,
+        # })
 
 
     @classmethod
@@ -65,10 +65,12 @@ class EagleDataLogger(object):
         """
         Fetch user_info from redis, using config.cloud_id as a key
         """
-        user_obj = self.application.settings['redis'].get(config['cloud_id'])
+        user_str = redis_conn.get(config['cloud_id'])
 
-        if user_obj == None:
+        if user_str == None:
             raise ValueError('No user with cloud_id '+str(config['cloud_id'])+' exists.')
+
+        user_obj = json.loads(user_str)
 
         return user_obj
 
@@ -97,10 +99,10 @@ class EagleDataLogger(object):
         print "Rotating logs to S3..."
         pass
 
-    @classmethod
-    def push_next_request_to_queue(cls, config):
-        print "Pushing next request to the queue"
-        pass
+    # @classmethod
+    # def push_next_request_to_queue(cls, config):
+    #     print "Pushing next request to the queue"
+    #     pass
 
 
     ### Time methods ###
@@ -136,6 +138,11 @@ class EagleDataLogger(object):
         """
         Check whether the old log filename is the same as the new one.
         """
+
+        #In case last_timestamp isn't defined yet:
+        if last_timestamp == None:
+            return False
+
         return cls.get_log_filename(user_info, last_timestamp) != cls.get_log_filename(user_info, now)
 
     ### File path methods ###
@@ -145,6 +152,9 @@ class EagleDataLogger(object):
         """
         Get the filename and path for storing this logfile locally.
         """
+        print '-'*80
+        print user_info
+        print now
         now_dt = datetime.datetime.utcfromtimestamp(now)
         cloud_id_str = str(user_info['cloud_id'])
         return '../data/logs/' + now_dt.strftime("%Y-%m-%d-%H") +\
