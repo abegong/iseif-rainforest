@@ -14,7 +14,7 @@ redis_host = 'localhost'
 redis_port = 6379
 db = redis.StrictRedis(host=redis_host, port=redis_port, db=0)
 
-@argh.arg('-i', '--cloud_id', type=str, default="00000", help='')
+@argh.arg('-i', '--cloud_id', type=str, default="002506", help='')
 @argh.arg('-t', '--last_timestamp', type=int, default=0, help='')
 def main(**kwargs):
     EagleDataLogger.get_new_rainforest_data(

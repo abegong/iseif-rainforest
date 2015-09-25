@@ -3,6 +3,8 @@ import json
 import datetime
 import time
 
+import eagle_http
+
 import util
 
 class EagleDataLogger(object):
@@ -47,7 +49,8 @@ class EagleDataLogger(object):
         #Write data to disk
         util.build_dirs(log_filename)
         event_strings = [json.dumps(event)+"\n" for event in rainforest_data]
-        file(log_filename, 'w').write(''.join(event_strings))
+        print log_filename
+        file(log_filename, 'ab').write(''.join(event_strings))
 
         #Rotate logs to S3 if necessary
         if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
@@ -90,8 +93,14 @@ class EagleDataLogger(object):
         Fetch data from the Rainforest server and return it as a list of json_blobs
         """
 
-        #!!! Generate TOTALLY FAKE data.
-        rainforest_data = []
+        single_json_blob = eagle_http.get_instantaneous_demand(
+            user_info['cloud_id'],
+            user_info['user_email'],
+            user_info['user_pw']
+        )
+        print json.dumps(single_json_blob, indent=2)
+        rainforest_data = [single_json_blob]
+
         return rainforest_data
 
     @classmethod
@@ -129,7 +138,7 @@ class EagleDataLogger(object):
         max_timestamp = 0
 
         for event in rainforest_data:
-            max_timestamp = max(max_timestamp, event['timestamp'])
+            max_timestamp = max(max_timestamp, event['TimeStamp'])
 
         return max_timestamp
 

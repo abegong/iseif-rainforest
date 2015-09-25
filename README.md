@@ -69,24 +69,27 @@ The four methods that make API calls are scaffolded, but not built yet:
 
 ## Next steps:
 
+	Bring refactored eagle_http code into the repo
+	Write a *real* fetch_data method
+
 	Develop triggering script
 	Migrate wait_time to separate triggering script
 
 	Dockerize it
-	Add configs for redis, SNS, rainforest, S3, etc.
-
-	Write a fake fetch_data method
-	Write a *real* fetch_data method
+	Add configs for redis, rainforest, and S3
 
 	Develop the rotate_log_to_s3 method
-
-	Develop the push_next_request_to_queue method
 
 	Test the whole cycle
 	Add some cleaner documentation
 
 	Write a monitoring script to track 
 	Come up with a future-proof plan for sharding
+
+## Prolly don't need this:
+
+	Develop the push_next_request_to_queue method
+	Add configs for redis, SNS, rainforest, S3, etc.
 
 
 

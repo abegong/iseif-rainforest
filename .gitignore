@@ -4,3 +4,4 @@ venv/
 experiments/
 docs/
 data/
+*.rdb
