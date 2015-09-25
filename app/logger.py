@@ -9,8 +9,6 @@ import util
 
 class EagleDataLogger(object):
 
-    max_wait = 6.0
-
     @classmethod
     def get_new_rainforest_data(cls, redis_conn, config):
         """
@@ -116,19 +114,6 @@ class EagleDataLogger(object):
 
 
     ### Time methods ###
-
-    @classmethod
-    def get_wait_time(cls, last_timestamp, now):
-        """
-        Calculuate how long to wait, given the difference between the last_timestamp and now.
-        If the difference is already greater than cls.max_wait, return 0.
-        """
-
-        diff = now - last_timestamp
-        if diff < cls.max_wait:
-            return cls.max_wait - diff
-        else:
-            return 0
 
     @classmethod
     def get_last_timestamp(cls, rainforest_data):

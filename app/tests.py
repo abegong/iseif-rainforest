@@ -7,49 +7,29 @@ import datetime
 
 import util
 from logger import EagleDataLogger
+from pinger import SixSecondPinger
 
 class TestLogger(unittest.TestCase):
 
     ### Test time methods ###
 
-    def test_get_wait_time(self):
-        self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 200),
-            0
-        )
-
-        self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 101),
-            9
-        )
-
-        self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 110),
-            0
-        )
-
-        #This case shouldn't happen: most recent data is from the future...?
-        self.assertEqual(
-            EagleDataLogger.get_wait_time(200, 100),
-            110
-        )
-
-        self.assertEqual(
-            EagleDataLogger.get_wait_time(200, 200),
-            10
-        )
-
-
     def test_get_last_timestamp(self):
         self.assertEqual(
             EagleDataLogger.get_last_timestamp([
-                {'timestamp': 20},
-                {'timestamp': -20},
-                {'timestamp': 105},
-                {'timestamp': 120},
-                {'timestamp': 200},
+                {'TimeStamp': 20},
+                {'TimeStamp': -20},
+                {'TimeStamp': 105},
+                {'TimeStamp': 120},
+                {'TimeStamp': 200},
             ]),
             200
+        )
+
+        self.assertEqual(
+            EagleDataLogger.get_last_timestamp([
+                {'TimeStamp': 20},
+            ]),
+            20
         )
 
     ### Test filepath methods ###
@@ -148,6 +128,35 @@ class TestLogger(unittest.TestCase):
     # def test_fetch_data(self):
     # def test_rotate_log_to_s3(self):
     # def test_push_next_request_to_queue(self):
+
+class TestPinger(unittest.TestCase):
+    def test_get_wait_time(self):
+        self.assertEqual(
+            EagleDataLogger.get_wait_time(100, 200),
+            0
+        )
+
+        self.assertEqual(
+            EagleDataLogger.get_wait_time(100, 101),
+            5
+        )
+
+        self.assertEqual(
+            EagleDataLogger.get_wait_time(100, 110),
+            0
+        )
+
+        #This case shouldn't happen: most recent data is from the future...?
+        self.assertEqual(
+            EagleDataLogger.get_wait_time(200, 100),
+            106
+        )
+
+        self.assertEqual(
+            EagleDataLogger.get_wait_time(200, 200),
+            6
+        )
+
 
 
 def main():

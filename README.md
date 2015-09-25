@@ -72,14 +72,18 @@ The four methods that make API calls are scaffolded, but not built yet:
 	Develop triggering script: pinger.py
 	Test the whole cycle
 
-## Next steps:
+	Migrate wait_time to pinger script
+	Wrap pinger script with argh funtions
 
-	Migrate wait_time to separate triggering script
-	Code review to clean up cruft
+## Next steps:
 
 	Dockerize it
 
 ### Next milestone: fully deployable app that logs stuff all on its own.
+
+	Code review to clean up cruft
+	Refactor
+	Add unit tests
 
 	Develop the rotate_log_to_s3 method
 	Add some cleaner documentation
