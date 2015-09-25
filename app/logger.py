@@ -36,29 +36,28 @@ class EagleDataLogger(object):
         user_info = cls.fetch_user_info(redis_conn, config)
         log_filename = cls.get_log_filename(user_info, now)
 
-        #Wait a little while
-        # wait_time = cls.get_wait_time(user_info["last_timestamp"], now)
-        # time.sleep(wait_time)
-
         #Fetch data
-        rainforest_data = cls.fetch_data(user_info, config['last_timestamp'])
+        rainforest_data = cls.fetch_instantaneous_data(user_info)
         last_timestamp = cls.get_last_timestamp(rainforest_data)
 
         #Write data to disk
         util.build_dirs(log_filename)
         event_strings = [json.dumps(event)+"\n" for event in rainforest_data]
-        print log_filename
+        #! This file should probably be managed as a member of
+        #! a pool of connections that stays open for as long as needed
         file(log_filename, 'ab').write(''.join(event_strings))
 
         #Rotate logs to S3 if necessary
         if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
+            #! This should kick off an asynchronous process
             cls.rotate_log_to_s3(user_info, user_info['last_timestamp'])
 
-        #Add new config entry to queue
-        # cls.push_next_request_to_queue({
-        #     'cloud_id' : user_info['cloud_id'],
-        #     'last_timestamp' : last_timestamp,
-        # })
+        #Update user_info in redis
+        user_info['last_timestamp'] = now
+        user_info['total_events_logged'] = user_info['total_events_logged'] + len(rainforest_data)
+        cls.update_user_info(redis_conn, user_info)
+
+
         return rainforest_data
 
 
@@ -76,18 +75,15 @@ class EagleDataLogger(object):
 
         return user_obj
 
-        # return {
-        #     'cloud_id' : config['cloud_id'],
-        #     'user_email' : 'viktor.krum@durmstrang.edu',
-        #     'user_pw' : '1234567',
-        #     'total_events_logged' : 27,
-        #     'first_timestamp' : 0,
-        #     'last_timestamp' : config['last_timestamp'],
-        # }
-
+    @classmethod
+    def update_user_info(cls, redis_conn, user_info):
+        """
+        Fetch user_info from redis, using config.cloud_id as a key
+        """
+        redis_conn.set(user_info['cloud_id'], json.dumps(user_info))
 
     @classmethod
-    def fetch_data(cls, user_info, last_timestamp):
+    def fetch_instantaneous_data(cls, user_info):
         """
         Fetch data from the Rainforest server and return it as a list of json_blobs
         """
@@ -97,7 +93,7 @@ class EagleDataLogger(object):
             user_info['user_email'],
             user_info['user_pw']
         )
-        print json.dumps(single_json_blob, indent=2)
+        # print json.dumps(single_json_blob, indent=2)
         rainforest_data = [single_json_blob]
 
         return rainforest_data
@@ -134,6 +130,7 @@ class EagleDataLogger(object):
         Check whether the old log filename is the same as the new one.
         """
 
+        print last_timestamp, now
         #In case last_timestamp isn't defined yet:
         if last_timestamp == None:
             return False
@@ -147,9 +144,9 @@ class EagleDataLogger(object):
         """
         Get the filename and path for storing this logfile locally.
         """
-        print '-'*80
-        print user_info
-        print now
+        # print '-'*80
+        # print user_info
+        # print now
         now_dt = datetime.datetime.utcfromtimestamp(now)
         cloud_id_str = str(user_info['cloud_id'])
         return '../data/logs/' + now_dt.strftime("%Y-%m-%d-%H") +\
