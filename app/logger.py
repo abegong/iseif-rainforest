@@ -61,6 +61,7 @@ class EagleDataLogger(object):
         #     'cloud_id' : user_info['cloud_id'],
         #     'last_timestamp' : last_timestamp,
         # })
+        return rainforest_data
 
 
     @classmethod

@@ -17,6 +17,7 @@ import tornado.web
 from tornado.options import define, options
 
 import util
+from logger import EagleDataLogger
 
 tornado.options.define("port", default="8000")
 tornado.options.define("redis_host", default="localhost")
@@ -76,17 +77,22 @@ class UserHandler(tornado.web.RequestHandler):
 """
 
 class EventHandler(tornado.web.RequestHandler):
-    def post(self):
+    def get(self, cloud_id):
+        event_objs = EagleDataLogger.get_new_rainforest_data(
+            self.application.settings['redis'],
+            {
+                'cloud_id' : cloud_id,
+                'last_timestamp' : None,
+            })
 
-        self.write({
-            'status': 'success',
-            'user' : user_obj,
-        })
+        self.write({'status': 'success'})
+        #     'events' : event_objs,
+        # })
 
 
 application = tornado.web.Application([
         # (r"/", tornado.web.RedirectHandler, {'url': '/home'}),
-        (r"/api/event/", EventHandler),
+        (r"/api/event/(.*?)", EventHandler),
         # (r"/api/user/(.*?)", UserHandler),
     ],
     debug=options.debug,

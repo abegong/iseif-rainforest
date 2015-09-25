@@ -66,30 +66,39 @@ The four methods that make API calls are scaffolded, but not built yet:
 	Get run_logger working with redis
 	Suppress push_next_request_to_queue
 
-
-## Next steps:
-
 	Bring refactored eagle_http code into the repo
 	Write a *real* fetch_data method
 
-	Develop triggering script
+	Develop triggering script: pinger.py
+	Test the whole cycle
+
+## Next steps:
+
 	Migrate wait_time to separate triggering script
+	Code review to clean up cruft
 
 	Dockerize it
-	Add configs for redis, rainforest, and S3
+
+### Next milestone: fully deployable app that logs stuff all on its own.
 
 	Develop the rotate_log_to_s3 method
-
-	Test the whole cycle
 	Add some cleaner documentation
 
-	Write a monitoring script to track 
+### Next milestone: ...and rotates logs to S3
+
+	Refactor so that we keep a pool of persistent file connections in app.py, instead of re-opening a new file 
+	Make HTTP requests non-blocking (but not disk writes)
 	Come up with a future-proof plan for sharding
 
-## Prolly don't need this:
+### Next milestone: ...in a thread-safe way.
+
+## Maybe don't need this:
 
 	Develop the push_next_request_to_queue method
 	Add configs for redis, SNS, rainforest, S3, etc.
+	Add configs for redis, rainforest, and S3
+	Write a monitoring script to track data flow by user
+
 
 
 
