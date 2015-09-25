@@ -21,8 +21,12 @@ class SixSecondPinger(object):
 
     def __init__(self, api_url, redis_conn):
         self.api_url = api_url
-        self.redis_conn = redis_conn
-        self.fetch_cloud_id_list()
+
+        if redis_conn:
+            self.redis_conn = redis_conn
+            self.fetch_cloud_id_list()
+        else:
+            print 'Warning: You really should declare redis_conn'
 
     def get_wait_time(self, last_timestamp, now):
         """
@@ -88,7 +92,8 @@ def main(**kwargs):
     )
     ssp.ping_forever(verbose=kwargs['verbose'])
 
-argh.dispatch_command(main)
+if __name__ == "__main__":
+    argh.dispatch_command(main)
 
 
 

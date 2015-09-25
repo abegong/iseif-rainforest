@@ -131,29 +131,46 @@ class TestLogger(unittest.TestCase):
 
 class TestPinger(unittest.TestCase):
     def test_get_wait_time(self):
+        ssp = SixSecondPinger(None, None)
+
         self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 200),
+            ssp.get_wait_time(
+                datetime.datetime.fromtimestamp(100),
+                datetime.datetime.fromtimestamp(200),
+            ),
             0
         )
 
         self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 101),
+            ssp.get_wait_time(
+                datetime.datetime.fromtimestamp(100),
+                datetime.datetime.fromtimestamp(101),
+            ),
             5
         )
 
         self.assertEqual(
-            EagleDataLogger.get_wait_time(100, 110),
+            ssp.get_wait_time(
+                datetime.datetime.fromtimestamp(100),
+                datetime.datetime.fromtimestamp(110),
+            ),
             0
         )
 
         #This case shouldn't happen: most recent data is from the future...?
         self.assertEqual(
-            EagleDataLogger.get_wait_time(200, 100),
+            ssp.get_wait_time(
+                datetime.datetime.fromtimestamp(200),
+                datetime.datetime.fromtimestamp(100),
+            ),
             106
         )
 
         self.assertEqual(
-            EagleDataLogger.get_wait_time(200, 200),
+            ssp.get_wait_time(
+                datetime.datetime.fromtimestamp(100),
+                datetime.datetime.fromtimestamp(100),
+            ),
             6
         )
 
