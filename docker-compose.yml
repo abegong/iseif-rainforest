@@ -1,6 +1,5 @@
 pinger:
   image: iseif-code:latest
-  # command: ls
   command: python app/pinger.py --app_host="server" --redis_host="redis"
   volumes:
    - .:/usr/src/
@@ -17,6 +16,9 @@ server:
    - redis
   ports:
    - "8000"
+  environment:
+   - AWS_ACCESS_KEY_ID
+   - AWS_SECRET_ACCESS_KEY  
 redis:
   image: redis
   expose:
