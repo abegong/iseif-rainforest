@@ -98,8 +98,15 @@ class EagleDataLogger(object):
 
     @classmethod
     def rotate_log_to_s3(cls, user_info, last_timestamp):
-        print "Rotating logs to S3..."
+        print "Kicking off S3 log rotation..."
         pass
+
+        # raw_filename = EagleDataLogger.get_log_filename(user_info, last_timestamp)
+        # s3_bucket_name = 'agong-iseif-temp'
+        # s3_filename = EagleDataLogger.get_s3_keyname(user_info, last_timestamp)
+
+        # Call aysnc
+
 
     # @classmethod
     # def push_next_request_to_queue(cls, config):
