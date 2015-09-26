@@ -1,0 +1,23 @@
+pinger:
+  image: iseif-pinger:latest
+  # command: ls
+  command: python pinger.py --app_host="server" --redis_host="redis"
+  volumes:
+   - .:/usr/src/
+  links:
+   - redis
+   - server
+server:
+  image: iseif-server:latest
+  command: python app.py --redis_host="redis" --filepath="/data/logs/"
+  volumes:
+   - .:/usr/src/
+   - /data
+  links:
+   - redis
+  ports:
+   - "8000"
+redis:
+  image: redis
+  expose:
+   - "6379"

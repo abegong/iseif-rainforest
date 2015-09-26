@@ -6,8 +6,8 @@ Usage:
 
 import argh
 import redis
-
 import requests
+
 import json
 import datetime
 import time
@@ -45,6 +45,8 @@ class SixSecondPinger(object):
         # print self.cloud_id_list
 
     def ping_cloud_id(self, cloud_id):
+        print self.api_url
+        print cloud_id
         response = requests.get(self.api_url+str(cloud_id))
         return response.status_code
 
@@ -58,6 +60,7 @@ class SixSecondPinger(object):
 
     def ping_forever(self, verbose=False):
         while 1:
+            print self.cloud_id_list
             start_time = datetime.datetime.now()
             results = self.ping_all_cloud_ids()
             spare_time = self.get_wait_time(start_time, datetime.datetime.now())

@@ -10,14 +10,12 @@ import util
 class EagleDataLogger(object):
 
     @classmethod
-    def get_new_rainforest_data(cls, redis_conn, config):
+    def get_new_rainforest_data(cls, redis_conn, config, filepath='../data/logs/'):
         """
-        Called
-
         Expected format for config:
         {
             cloud_id
-            last_timestamp: (unix epoch) The timestamp of the last recorded
+            last_timestamp: (unix epoch) The timestamp of the last recorded event
         }
 
         Format for user_info (retrieved from redis with cloud_id as a key)
@@ -41,11 +39,11 @@ class EagleDataLogger(object):
         last_timestamp = cls.get_last_timestamp(rainforest_data)
 
         #Write data to disk
-        util.build_dirs(log_filename)
+        util.build_dirs(filepath+log_filename)
         event_strings = [json.dumps(event)+"\n" for event in rainforest_data]
         #! This file should probably be managed as a member of
         #! a pool of connections that stays open for as long as needed
-        file(log_filename, 'ab').write(''.join(event_strings))
+        file(filepath+log_filename, 'ab').write(''.join(event_strings))
 
         #Rotate logs to S3 if necessary
         if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
@@ -130,7 +128,6 @@ class EagleDataLogger(object):
         Check whether the old log filename is the same as the new one.
         """
 
-        print last_timestamp, now
         #In case last_timestamp isn't defined yet:
         if last_timestamp == None:
             return False
@@ -149,7 +146,7 @@ class EagleDataLogger(object):
         # print now
         now_dt = datetime.datetime.utcfromtimestamp(now)
         cloud_id_str = str(user_info['cloud_id'])
-        return '../data/logs/' + now_dt.strftime("%Y-%m-%d-%H") +\
+        return  now_dt.strftime("%Y-%m-%d-%H") +\
             "/iseif-rainforest-" + cloud_id_str + now_dt.strftime("-%Y-%m-%d-%H.jl")
 
     @classmethod

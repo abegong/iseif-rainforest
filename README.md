@@ -27,7 +27,18 @@ So the moving parts are:
 logger.EagleDataLogger contains most of the core business logic.
 This class can be called from tests, a simple CLI (run_logger.py), or from the tornado webserver.
 
+## Building docker files:
 
+	docker build -t iseif-base docker/base/
+	#!!! docker build -t iseif-code .
+	docker build -t iseif-code app
+	docker build -t iseif-server docker/server/
+	docker build -t iseif-pinger docker/pinger/
+
+	docker-compose up -d redis
+	#!!! Add user_ids here
+	docker-compose up -d server
+	docker-compose up -d pinger
 
 
 ## Status
@@ -77,7 +88,6 @@ The four methods that make API calls are scaffolded, but not built yet:
 
 	Migrate unit tests for pinger
 
-
 	Code review to clean up cruft: logger.py
 	Add update_user_info
 	
@@ -85,10 +95,24 @@ The four methods that make API calls are scaffolded, but not built yet:
 ## Next steps:
 
 	Dockerize it
+	Add requirements.txt
+	Develop Dockerfile for server
+	Develop Dockerfile for pinger
+	Develop docker-compose.yml
+	Fix filepath in EagleDataLogger
+	Re-up api/user path in app.py
+	Fix filepath in docker files
+	Make iseif-code compile from within app/
+	Fix filepaths in util
+
+	Add a way to populate redis with a user list
+
+
 
 ### Next milestone: fully deployable app that logs stuff all on its own.
 
 	Add some cleaner documentation
+	Add better logging
 
 	Develop the rotate_log_to_s3 method
 
