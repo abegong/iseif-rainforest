@@ -27,7 +27,6 @@ def main(raw_filename, s3_bucket_name, s3_filename, **kwargs):
     if kwargs['dry_run']:
         kwargs['verbose'] = True
 
-    # filenames = get_filenames(user_info, last_timestamp)
     zipped_filename = raw_filename+'.gz'
 
     if kwargs['verbose']:

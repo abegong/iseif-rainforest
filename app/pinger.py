@@ -45,8 +45,8 @@ class SixSecondPinger(object):
         # print self.cloud_id_list
 
     def ping_cloud_id(self, cloud_id):
-        print self.api_url
-        print cloud_id
+        # print self.api_url
+        # print cloud_id
         response = requests.get(self.api_url+str(cloud_id))
         return response.status_code
 
@@ -59,8 +59,9 @@ class SixSecondPinger(object):
         return result_dict
 
     def ping_forever(self, verbose=False):
+        count = 0
         while 1:
-            print self.cloud_id_list
+            # print self.cloud_id_list
             start_time = datetime.datetime.now()
             results = self.ping_all_cloud_ids()
             spare_time = self.get_wait_time(start_time, datetime.datetime.now())
@@ -72,7 +73,12 @@ class SixSecondPinger(object):
                     'spare_time' : spare_time,
                 })
 
-            #!!!Maybe we should fetch new cloud_id_list from redis every once in a while
+            #Fetch new cloud_id_list from redis every once in a while
+            count += 1
+            if count >= 10:
+                self.fetch_cloud_id_list()
+                count = 0
+
             time.sleep(spare_time)
 
 @argh.arg('--app_host', type=str, default="localhost")
