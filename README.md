@@ -12,9 +12,9 @@ We use [docker](https://www.docker.com/), so this should only take a few minutes
 
         docker build -t iseif-base docker/base/
         docker build -t iseif-code app
-        docker build -t iseif-server docker/server/
+<!--         docker build -t iseif-server docker/server/
         docker build -t iseif-pinger docker/pinger/
-
+ -->
 This structure uses docker's stacking capability to save time when rebuilding images. The iseif-base image installs all the dependencies for the app---this one takes a few minutes to build. The iseif-code image installs the code from iseif_rainforest/app/. This is quick.
 
 ### 2. Run `docker-compose up`
