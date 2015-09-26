@@ -1,140 +1,86 @@
+# ISEIF Rainforest Logger
+
+## What does it do?
+For a defined set of users, fetch instantaneous Rainforest data at regular six-second intervals and store it to disk. Every hour, rotate those logs to permanent storage on S3.
+
+
+## Deployment
+We use [docker](https://www.docker.com/), so this should only take a few minutes. There are three steps.
+
+### 1. Build each of the images.
+(You only have to do this once when you launch a new EC2 instance or change the source code.)
+
+        docker build -t iseif-base docker/base/
+        docker build -t iseif-code app
+        docker build -t iseif-server docker/server/
+        docker build -t iseif-pinger docker/pinger/
+
+This structure uses docker's stacking capability to save time when rebuilding images. The iseif-base image installs all the dependencies for the app---this one takes a few minutes to build. The iseif-code image installs the code from iseif_rainforest/app/. This is quick.
+
+### 2. Run `docker-compose up`
+This command will launch containers for the three services defined in the docker-compse.yml config: redis, server, and pinger.
+
+You can confirm that the containers are running with the command `docker ps`. The output should have rows for three containers, like this:
+
+    CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                     NAMES
+    e1d6af5e464a        iseif-pinger:latest   "python pinger.py --a"   8 hours ago         Up 8 hours                                    iseifrainforest_pinger_1
+    077dad0b012b        iseif-server:latest   "python app.py --redi"   8 hours ago         Up 8 hours          0.0.0.0:32768->8000/tcp   iseifrainforest_server_1
+    b03f68fec7c2        redis                 "/entrypoint.sh redis"   9 hours ago         Up 9 hours          6379/tcp                  iseifrainforest_redis_1
+
+### For troubleshooting:
+
+`docker-compose up pinger` will start up the pinger container in a verbose mode. This is a good first line of defense if the service fails to start up.
+
+`docker exec -i -t iseifrainforest_server_1 bash` will give you bash console access to the server container. Great for logging in to poke around.
+
+### 3. Add user records to redis
+
+!!! TBD.
 
 ## Architecture
 
-1. Tasks are submitted to an AWS SNS queue.
-2. They're received by a tornado server, which
-	1. Fetches events from Rainforest
-	2. Stores them locally to logfiles, broken out by user cloud_id
-	3. Rotates logs to S3 every hour
+### 1. Redis
+Serves as a local cache for user login information, and a little bit of metadata. Each key-value pair corresponds to a user.
 
+Keys are user cloud_ids stored as strings, including leading zeroes.
+  
+Values are stringified json blobs with the following fields.
 
-#### Redis
-The tornado server caches data locally in redis.
-This gives us a convenient way to store state. (We're not really using this right now.)
-More importantly, it lets us store user names and PWs in a more secure way. (They don't have to be encoded with every SQS task.)
+    {
+        'cloud_id' : "002738",
+        'user_email' : 'viktor.krum@durmstrang.edu',
+        'user_pw' : '1234567',
+        'total_events_logged' : 2725,
+        'first_timestamp' : 1443274732.39435,
+        'last_timestamp' : 1443277732.933939,
+    }
 
+### 2. Server
+The server exposes these routes:
 
-So the moving parts are:
-* SNS
-* Tornado server
-* Rainforest server
-* Redis
-* Local logfiles
-* S3
+	GET /api/event/{user_cloud_id} : fetch instantaneous Rainforest data for a given user
+	POST /api/user/{user_cloud_id} : create or update a user records cached in redis
 
+### 3. Pinger
 
-## EagleDataLogger
-logger.EagleDataLogger contains most of the core business logic.
-This class can be called from tests, a simple CLI (run_logger.py), or from the tornado webserver.
+!!!
 
-## Building docker files:
+## Codebase
 
-	docker build -t iseif-base docker/base/
-	#!!! docker build -t iseif-code .
-	docker build -t iseif-code app
-	docker build -t iseif-server docker/server/
-	docker build -t iseif-pinger docker/pinger/
+## Milestones
 
-	docker-compose up -d redis
-	#!!! Add user_ids here
-	docker-compose up -d server
-	docker-compose up -d pinger
+What's done?
+* The inner loop of the code runs reliably
+* The main methods for EagleDataLogger are under test
+* General architecture is stable and (mostly) documented
+* Deployment is dockerized
 
+What's not done?
+* Logs are not yet stored to S3.
+* Add monitoring and error logging for deployment
+* Refactor the code for scalability : make HTTP calls non-blocking, maintain a persistent pool of file connections in app.py
+* Develop utility scripts for starting (sharded) container sets
+* Security on the server is (literally) a joke. Fix that, maybe.
+* Do we need to capture pricing data?
+* Make certain that the system handles edge case (bad credentials, unavailable Eagles, etc.) gracefully.
 
-## Status
-
-What's working as of 9/12/2015:
-
-The core methods for the logger class are in pretty good shape:
-
-	def get_wait_time(cls, last_timestamp, now):
-	def get_last_timestamp(cls, rainforest_data):
-	def is_new_log_filename(cls, user_info, last_timestamp, now):
-	def get_log_filename(cls, user_info, now):
-	def get_s3_keyname(cls, user_info, last_timestamp):
-
-They're under test, and the master method is built:
-
-	def get_new_rainforest_data(cls, redis_conn, config):
-
-The four methods that make API calls are scaffolded, but not built yet:
-
-	def fetch_user_info(cls, redis_conn, config):
-	def fetch_data(cls, user_info, last_timestamp):
-	def rotate_log_to_s3(cls, user_info, last_timestamp):
-	def push_next_request_to_queue(cls, config):
-
-## More stuff that's done:
-
-	Bring up Redis
-	Implement fetch_user_info
-	Wrap the whole thing in a tornado server
-	Add a tornado method to populate redis
-
-	Create a fake user data set
-
-	Suppress wait_time
-	Get run_logger working with redis
-	Suppress push_next_request_to_queue
-
-	Bring refactored eagle_http code into the repo
-	Write a *real* fetch_data method
-
-	Develop triggering script: pinger.py
-	Test the whole cycle
-
-	Migrate wait_time to pinger script
-	Wrap pinger script with argh funtions
-
-	Migrate unit tests for pinger
-
-	Code review to clean up cruft: logger.py
-	Add update_user_info
-	
-
-## Next steps:
-
-	Dockerize it
-	Add requirements.txt
-	Develop Dockerfile for server
-	Develop Dockerfile for pinger
-	Develop docker-compose.yml
-	Fix filepath in EagleDataLogger
-	Re-up api/user path in app.py
-	Fix filepath in docker files
-	Make iseif-code compile from within app/
-	Fix filepaths in util
-
-	Add a way to populate redis with a user list
-
-
-
-### Next milestone: fully deployable app that logs stuff all on its own.
-
-	Add some cleaner documentation
-	Add better logging
-
-	Develop the rotate_log_to_s3 method
-
-### Next milestone: ...and rotates logs to S3
-
-	Refactor so that we keep a pool of persistent file connections in app.py, instead of re-opening a new file 
-	Make HTTP requests non-blocking (but not disk writes)
-	Come up with a future-proof plan for sharding
-
-### Next milestone: ...in a thread-safe way.
-
-## Maybe don't need this:
-
-	Develop the push_next_request_to_queue method
-	Add configs for redis, SNS, rainforest, S3, etc.
-	Add configs for redis, rainforest, and S3
-	Write a monitoring script to track data flow by user
-
-
-
-
-
-
-
-But I think it’s a better use of our time to nail down Anthem
