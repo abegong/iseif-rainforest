@@ -33,14 +33,23 @@ class UserHandler(tornado.web.RequestHandler):
         if not server_pw == self.pw:
             raise tornado.web.HTTPError(400, reason="Wrong server_pw: "+cloud_id+"//"+server_pw)
 
-        user_obj = self.application.settings['redis'].get(cloud_id)
-        if user_obj == None:
-            raise tornado.web.HTTPError(400, reason='No user with cloud_id '+str(cloud_id)+' exists.')
-        
-        self.write({
-            'status': 'success',
-            'user' : user_obj,
-        })
+        if cloud_id == '':
+            user_list = self.application.settings['redis'].keys()
+
+            self.write({
+                'status': 'success',
+                'user_list' : user_list,
+            })
+
+        else:
+            user_obj = self.application.settings['redis'].get(cloud_id)
+            if user_obj == None:
+                raise tornado.web.HTTPError(400, reason='No user with cloud_id '+str(cloud_id)+' exists.')
+            
+            self.write({
+                'status': 'success',
+                'user' : user_obj,
+            })
 
     def post(self, cloud_id):
         server_pw = self.get_argument('pw', None)
@@ -106,7 +115,7 @@ print options.redis_host
 application = tornado.web.Application([
         # (r"/", tornado.web.RedirectHandler, {'url': '/home'}),
         (r"/api/event/(.*?)", EventHandler),
-        (r"/api/user/(.*?)", UserHandler),
+        (r"/api/users/?(.*?)", UserHandler),
     ],
     debug=options.debug,
     redis=redis.StrictRedis(host=options.redis_host, port=options.redis_port, db=0),

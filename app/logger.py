@@ -52,6 +52,8 @@ class EagleDataLogger(object):
 
         #Update user_info in redis
         user_info['last_timestamp'] = now
+        if user_info['first_timestamp'] == None:
+            user_info['first_timestamp'] = now
         user_info['total_events_logged'] = user_info['total_events_logged'] + len(rainforest_data)
         cls.update_user_info(redis_conn, user_info)
 
