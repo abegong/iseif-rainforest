@@ -26,7 +26,13 @@ tornado.options.define("filepath", default="../data/logs/")
 tornado.options.define("debug", default=True)
 
 class UserHandler(tornado.web.RequestHandler):
+    pw = "plaintext123"
+
     def get(self, cloud_id):
+        server_pw = self.get_argument('pw', None)
+        if not server_pw == self.pw:
+            raise tornado.web.HTTPError(400, reason="Wrong server_pw: "+cloud_id+"//"+server_pw)
+
         user_obj = self.application.settings['redis'].get(cloud_id)
         if user_obj == None:
             raise tornado.web.HTTPError(400, reason='No user with cloud_id '+str(cloud_id)+' exists.')
@@ -37,6 +43,10 @@ class UserHandler(tornado.web.RequestHandler):
         })
 
     def post(self, cloud_id):
+        server_pw = self.get_argument('pw', None)
+        if not server_pw == self.pw:
+            raise tornado.web.HTTPError(400, reason="Wrong server_pw")
+
         now_dt = datetime.datetime.now()
         now = util.convert_datetime_to_unix_epoch(now_dt)
 
@@ -44,9 +54,6 @@ class UserHandler(tornado.web.RequestHandler):
             data = json.loads(self.request.body)
         except ValueError:
             raise tornado.web.HTTPError(400, reason="Request body must be a valid JSON object.")
-
-        if not data["server_pw"] == "YesIAmStoredInPlainText.7^":
-            raise tornado.web.HTTPError(400, reason="Wrong server_pw")
 
         # print data
         for key in ['user_email', 'user_pw']:
@@ -99,7 +106,7 @@ print options.redis_host
 application = tornado.web.Application([
         # (r"/", tornado.web.RedirectHandler, {'url': '/home'}),
         (r"/api/event/(.*?)", EventHandler),
-        # (r"/api/user/(.*?)", UserHandler),
+        (r"/api/user/(.*?)", UserHandler),
     ],
     debug=options.debug,
     redis=redis.StrictRedis(host=options.redis_host, port=options.redis_port, db=0),
