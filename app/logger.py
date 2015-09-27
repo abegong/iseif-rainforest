@@ -3,6 +3,7 @@ import json
 import datetime
 import time
 import logging
+from subprocess import Popen
 
 import eagle_http
 
@@ -11,7 +12,7 @@ import util
 class EagleDataLogger(object):
 
     @classmethod
-    def get_new_rainforest_data(cls, redis_conn, config, filepath='../data/logs/'):
+    def get_new_rainforest_data(cls, redis_conn, config, filepath='../data/logs/', bucket_name='agong-iseif-temp'):
         """
         Expected format for config:
         {
@@ -48,9 +49,9 @@ class EagleDataLogger(object):
         file(filepath+log_filename, 'ab').write(''.join(event_strings))
 
         #Rotate logs to S3 if necessary
-        if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
-            #! This should kick off an asynchronous process
-            cls.rotate_log_to_s3(user_info, user_info['last_timestamp'])
+        # if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
+        if 1:
+            cls.rotate_log_to_s3(user_info, user_info['last_timestamp'], bucket_name)
 
         #Update user_info in redis
         user_info['last_timestamp'] = now
@@ -104,13 +105,19 @@ class EagleDataLogger(object):
         return rainforest_data
 
     @classmethod
-    def rotate_log_to_s3(cls, user_info, last_timestamp):
+    def rotate_log_to_s3(cls, user_info, last_timestamp, bucket_name):
         logging.info("Kicking off S3 log rotation...")
+
+        raw_filename = EagleDataLogger.get_log_filename(user_info, last_timestamp)
+        s3_bucket_name = bucket_name
+        s3_filename = EagleDataLogger.get_s3_keyname(user_info, last_timestamp)
+
+        Popen(['python', 'app/rotate_logs_to_s3.py',
+            raw_filename, s3_bucket_name, s3_filename,
+            '-d',
+        ])
         pass
 
-        # raw_filename = EagleDataLogger.get_log_filename(user_info, last_timestamp)
-        # s3_bucket_name = 'agong-iseif-temp'
-        # s3_filename = EagleDataLogger.get_s3_keyname(user_info, last_timestamp)
 
         # Call aysnc
 

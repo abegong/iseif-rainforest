@@ -12,9 +12,7 @@ We use [docker](https://www.docker.com/), so this should only take a few minutes
 
         docker build -t iseif-base docker/base/
         docker build -t iseif-code app
-<!--         docker build -t iseif-server docker/server/
-        docker build -t iseif-pinger docker/pinger/
- -->
+
 This structure uses docker's stacking capability to save time when rebuilding images. The iseif-base image installs all the dependencies for the app---this one takes a few minutes to build. The iseif-code image installs the code from iseif_rainforest/app/. This is quick.
 
 ### 2. Run `docker-compose up`
@@ -33,9 +31,14 @@ You can confirm that the containers are running with the command `docker ps`. Th
 
 `docker exec -i -t iseifrainforest_server_1 bash` will give you bash console access to the server container. Great for logging in to poke around.
 
-### 3. Add user records to redis
+### 3. Add user records
 
-!!! TBD.
+    python scripts/add_user_info_via_server.py
+
+This command requires a file containing user_info entries on separate rows. Each line must be an individual json blob containing all the expected fields (see below.)
+
+After you run this command, the pinger service should pick up on the new records and begin requesting data within a minute.
+
 
 ## Architecture
 
@@ -63,9 +66,20 @@ The server exposes these routes:
 
 ### 3. Pinger
 
-!!!
+This service requests
 
 ## Codebase
+
+## Logs
+
+Service logs are stored here:
+    
+    /data/logs/pinger/pinger.log
+    /data/logs/pinger/pinger.log
+
+User data logs are stored in this kind of filepath:
+
+    /data/logs/2015-09-27-04/iseif-rainforest-002506-2015-09-27-04.jl 
 
 ## Milestones
 
@@ -74,10 +88,10 @@ What's done?
 * The main methods for EagleDataLogger are under test
 * General architecture is stable and (mostly) documented
 * Deployment is dockerized
+* Add monitoring and error logging for deployment
 
 What's not done?
 * Logs are not yet stored to S3.
-* Add monitoring and error logging for deployment
 * Refactor the code for scalability : make HTTP calls non-blocking, maintain a persistent pool of file connections in app.py
 * Develop utility scripts for starting (sharded) container sets
 * Security on the server is (literally) a joke. Fix that, maybe.

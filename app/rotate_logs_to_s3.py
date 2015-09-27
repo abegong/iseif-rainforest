@@ -12,6 +12,7 @@ import argh
 import gzip
 import shutil
 import os
+import logging
 
 import boto
 from boto.s3.key import Key
@@ -23,14 +24,24 @@ from boto.s3.key import Key
 @argh.arg('-r', '--no_remove', default=False)
 @argh.arg('-d', '--dry_run', default=False)
 @argh.arg('-v', '--verbose', default=True)
+@argh.arg('-l', '--log_level', default=logging.DEBUG)
+@argh.arg('-f', '--log_file', default='rotate.log')
 def main(raw_filename, s3_bucket_name, s3_filename, **kwargs):
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s:%(message)s',
+        filename=kwargs['log_file'],
+        level=kwargs['log_level'],
+    )
+    logging.info('='*80)
+    logging.info('Hello, rotate!')
+
     if kwargs['dry_run']:
         kwargs['verbose'] = True
 
     zipped_filename = raw_filename+'.gz'
 
     if kwargs['verbose']:
-        print 'Generating zipped file', zipped_filename
+        logging.info('Generating zipped file '+ zipped_filename)
 
     if not kwargs['dry_run']:
         #Zip the file
@@ -40,14 +51,14 @@ def main(raw_filename, s3_bucket_name, s3_filename, **kwargs):
 
     #Connect to S3
     if kwargs['verbose']:
-        print 'Connecting to S3'
+        logging.info('Connecting to S3')
 
     if not kwargs['dry_run']:
         #! This requires AWS credentials to be defined in .bashrc, etc.
         s3_conn = boto.connect_s3()
 
     if kwargs['verbose']:
-        print 'Getting bucket', s3_bucket_name
+        logging.info('Getting bucket '+ s3_bucket_name)
 
     if not kwargs['dry_run']:
         #! Maybe we should make sure the bucket exists/create it if it doesn't?
@@ -58,7 +69,7 @@ def main(raw_filename, s3_bucket_name, s3_filename, **kwargs):
 
 
     if kwargs['verbose']:
-        print 'Uploading zipped file to', s3_filename
+        logging.info('Uploading zipped file to '+ s3_filename)
 
     if not kwargs['dry_run']:
         #Upload the zipped file
@@ -71,7 +82,7 @@ def main(raw_filename, s3_bucket_name, s3_filename, **kwargs):
 
     #Delete the file and zipped file
     if kwargs['verbose']:
-        print 'Deleting zipped and original files'
+        logging.info('Deleting zipped and original files')
 
     if not kwargs['dry_run']:
         os.remove(raw_filename)
