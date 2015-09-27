@@ -2,6 +2,7 @@ import requests
 import json
 import datetime
 import time
+import logging
 
 import eagle_http
 
@@ -29,6 +30,7 @@ class EagleDataLogger(object):
         }
 
         """
+        logging.info('get_new_rainforest_data')
 
         now = util.convert_datetime_to_unix_epoch(datetime.datetime.now())
         user_info = cls.fetch_user_info(redis_conn, config)
@@ -71,6 +73,8 @@ class EagleDataLogger(object):
         if user_str == None:
             raise ValueError('No user with cloud_id '+str(config['cloud_id'])+' exists.')
 
+        logging.info("Fetching user info...")
+        logging.debug("\tuser_str:"+user_str)
         user_obj = json.loads(user_str)
 
         return user_obj
@@ -87,6 +91,7 @@ class EagleDataLogger(object):
         """
         Fetch data from the Rainforest server and return it as a list of json_blobs
         """
+        logging.info("Fetching instantaneous demand...")
 
         single_json_blob = eagle_http.get_instantaneous_demand(
             user_info['cloud_id'],
@@ -100,7 +105,7 @@ class EagleDataLogger(object):
 
     @classmethod
     def rotate_log_to_s3(cls, user_info, last_timestamp):
-        print "Kicking off S3 log rotation..."
+        logging.info("Kicking off S3 log rotation...")
         pass
 
         # raw_filename = EagleDataLogger.get_log_filename(user_info, last_timestamp)

@@ -7,6 +7,7 @@ Usage:
 import argh
 import redis
 import requests
+import logging
 
 import json
 import datetime
@@ -26,7 +27,7 @@ class SixSecondPinger(object):
             self.redis_conn = redis_conn
             self.fetch_cloud_id_list()
         else:
-            print 'Warning: You really should declare redis_conn'
+            logging.warn('Warning: You really should declare redis_conn')
 
     def get_wait_time(self, last_timestamp, now):
         """
@@ -41,7 +42,9 @@ class SixSecondPinger(object):
             return 0
 
     def fetch_cloud_id_list(self):
+        logging.info('Fetching cloud_id_list...')
         self.cloud_id_list = self.redis_conn.keys()
+        logging.debug('\tcloud_id_list: '+','.join(self.cloud_id_list))
         # print self.cloud_id_list
 
     def ping_cloud_id(self, cloud_id):
@@ -67,11 +70,11 @@ class SixSecondPinger(object):
             spare_time = self.get_wait_time(start_time, datetime.datetime.now())
 
             if verbose:
-                print json.dumps({
+                logging.info(json.dumps({
                     'start_time' : util.convert_datetime_to_unix_epoch(start_time),
                     'results' : results,
                     'spare_time' : spare_time,
-                })
+                }))
 
             #Fetch new cloud_id_list from redis every once in a while
             count += 1
@@ -86,7 +89,18 @@ class SixSecondPinger(object):
 @argh.arg('--redis_host', type=str, default="localhost")
 @argh.arg('--redis_port', type=int, default=6379)
 @argh.arg('-v', '--verbose', default=False)
+@argh.arg('-l', '--log_level', default=logging.DEBUG)
+@argh.arg('-f', '--log_file', default='pinger.log')
 def main(**kwargs):
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s:%(message)s',
+        filename=kwargs['log_file'],
+        level=kwargs['log_level'],
+    )
+    logging.info('='*80)
+    logging.info('Hello, pinger!')
+
+    logging.info('Connecting to redis...')
     redis_conn = redis.StrictRedis(
         host=kwargs['redis_host'],
         port=kwargs['redis_port'],
@@ -94,11 +108,15 @@ def main(**kwargs):
     )
 
     api_url = 'http://'+kwargs['app_host']+':'+str(kwargs['app_port'])+'/api/event/'
+    logging.info('api_url: '+api_url)
 
+    logging.info('Instantiating SixSecondPinger...')
     ssp = SixSecondPinger(
         api_url,
         redis_conn,
     )
+
+    logging.info('Launching ping_forever...')
     ssp.ping_forever(verbose=kwargs['verbose'])
 
 if __name__ == "__main__":

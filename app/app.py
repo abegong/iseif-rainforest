@@ -5,12 +5,17 @@ curl localhost:8000/api/user/42013
 
 #Post user with cloud_id 42013
 curl localhost:8000/api/user/42013 -H "Content-Type: application/json" -X POST -d '{"type":"cat","object":{"species":"tiger"},"context":{}}'
+
+NB: log_file_prefix must be specified externally
+python app/app.py --log_file_prefix="server.log"
+
 """
 
 
 import json
 import datetime
 import redis
+import logging
 
 import tornado.ioloop
 import tornado.web
@@ -23,6 +28,7 @@ tornado.options.define("port", default="8000")
 tornado.options.define("redis_host", default="localhost")
 tornado.options.define("redis_port", default="6379")
 tornado.options.define("filepath", default="../data/logs/")
+tornado.options.define("log_level", default=logging.DEBUG)
 tornado.options.define("debug", default=True)
 
 class UserHandler(tornado.web.RequestHandler):
@@ -86,7 +92,7 @@ class UserHandler(tornado.web.RequestHandler):
             'first_timestamp' : now,
             'last_timestamp' : now,
         }
-        self.application.settings['redis'].set(cloud_id, user_obj)
+        self.application.settings['redis'].set(cloud_id, json.dumps(user_obj))
 
         self.write({
             'status': 'success',
@@ -110,7 +116,6 @@ class EventHandler(tornado.web.RequestHandler):
 
 
 tornado.options.parse_command_line()
-print options.redis_host
 
 application = tornado.web.Application([
         # (r"/", tornado.web.RedirectHandler, {'url': '/home'}),
@@ -123,6 +128,16 @@ application = tornado.web.Application([
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
+
+    #Configure logging
+    logger = logging.getLogger()
+    logger.setLevel(options.log_level)
+    logger.removeHandler(logger.handlers[1])
+
+    logging.info('='*80)
+    logging.info('Starting tornado server...')
+    logging.debug('\tdebug mode is on...')
+
     application.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
 
