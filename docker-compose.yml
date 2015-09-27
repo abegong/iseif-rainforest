@@ -1,17 +1,19 @@
 pinger:
   image: iseif-code:latest
-  command: python app/pinger.py --app_host="server" --redis_host="redis"
+  command: python app/pinger.py --app_host="server" --redis_host="redis" --log_file="/data/logs/pinger/pinger.log"
   volumes:
    - .:/usr/src/
+   - /data/logs/pinger
   links:
    - redis
    - server
 server:
   image: iseif-code:latest
-  command: python app/app.py --redis_host="redis" --filepath="/data/logs/"
+  command: python app/app.py --redis_host="redis" --filepath="/data/logs/" --log_file_prefix="/data/logs/server/server.log"
   volumes:
    - .:/usr/src/
    - /data
+   - /data/logs/server
   links:
    - redis
   ports:
