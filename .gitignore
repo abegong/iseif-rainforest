@@ -5,3 +5,4 @@ experiments/
 docs/
 data/
 *.rdb
+*.log
