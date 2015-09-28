@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     logging.info('='*80)
     logging.info('Starting tornado server...')
-    logging.debug('\tdebug mode is on...')
+    # logging.debug('\tdebug mode is on...')
 
     application.listen(options.port)
     tornado.ioloop.IOLoop.current().start()

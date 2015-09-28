@@ -9,11 +9,12 @@ pinger:
    - server
 server:
   image: iseif-code:latest
-  command: python app/app.py --redis_host="redis" --filepath="/data/logs/" --log_file_prefix="/data/logs/server/server.log"
+  command: python app/app.py --redis_host="redis" --filepath="/data/logs/" --log_file_prefix="/data/logs/server/server.log" --log_level=20 --debug=False
   volumes:
    - .:/usr/src/
    - /data
    - /data/logs/server
+   - /data/logs/rotate
   links:
    - redis
   ports:

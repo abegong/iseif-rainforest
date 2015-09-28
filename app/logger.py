@@ -12,7 +12,8 @@ import util
 class EagleDataLogger(object):
 
     @classmethod
-    def get_new_rainforest_data(cls, redis_conn, config, filepath='../data/logs/', bucket_name='agong-iseif-temp'):
+    def get_new_rainforest_data(cls, redis_conn, config, filepath='../data/logs/', bucket_name='agong-iseif-temp',):
+        #s3_rotation_log_filepath='../data/logs/', s3_rotation_log_level=logging.DEBUG,
         """
         Expected format for config:
         {
@@ -49,9 +50,8 @@ class EagleDataLogger(object):
         file(filepath+log_filename, 'ab').write(''.join(event_strings))
 
         #Rotate logs to S3 if necessary
-        # if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
-        if 1:
-            cls.rotate_log_to_s3(user_info, user_info['last_timestamp'], bucket_name)
+        if cls.is_new_log_filename(user_info, user_info['last_timestamp'], now):
+            cls.rotate_log_to_s3(user_info, user_info['last_timestamp'], filepath, bucket_name)
 
         #Update user_info in redis
         user_info['last_timestamp'] = now
@@ -105,22 +105,27 @@ class EagleDataLogger(object):
         return rainforest_data
 
     @classmethod
-    def rotate_log_to_s3(cls, user_info, last_timestamp, bucket_name):
+    def rotate_log_to_s3(cls, user_info, last_timestamp, filepath, bucket_name):
+        """
+        Kick off an asynchronous call to rotate a logfile to S3.
+        """
         logging.info("Kicking off S3 log rotation...")
 
-        raw_filename = EagleDataLogger.get_log_filename(user_info, last_timestamp)
+        raw_filename = filepath+EagleDataLogger.get_log_filename(user_info, last_timestamp)
         s3_bucket_name = bucket_name
         s3_filename = EagleDataLogger.get_s3_keyname(user_info, last_timestamp)
 
+        log_filename = filepath+'rotate/rotate.log'
+        logging.debug('\t'+raw_filename)
+        logging.debug('\t'+s3_bucket_name)
+        logging.debug('\t'+s3_filename)
+        logging.debug('\t'+log_filename)
+
         Popen(['python', 'app/rotate_logs_to_s3.py',
             raw_filename, s3_bucket_name, s3_filename,
-            '-d',
+            '--log_file='+log_filename,
+            '--log_level=20',
         ])
-        pass
-
-
-        # Call aysnc
-
 
     # @classmethod
     # def push_next_request_to_queue(cls, config):
