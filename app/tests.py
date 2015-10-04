@@ -108,7 +108,7 @@ class TestLogger(unittest.TestCase):
                 {'cloud_id' : 99999},
                 util.convert_datetime_to_unix_epoch(datetime.datetime(2015,1,2,3,4)),
             ),
-            '../data/logs/2015-01-02-03/iseif-rainforest-99999-2015-01-02-03.jl'
+            '2015-01-02-03/iseif-rainforest-99999-2015-01-02-03.jl'
         )
 
     def test_get_s3_keyname(self):
@@ -117,7 +117,7 @@ class TestLogger(unittest.TestCase):
                 {'cloud_id' : 99999},
                 util.convert_datetime_to_unix_epoch(datetime.datetime(2015,1,2,3,4)),
             ),
-            'rainforest-logs/99999/2015/01/02/iseif-rainforest-99999-2015-01-02-03.jl'
+            'rainforest-logs/99999/2015/01/02/iseif-rainforest-99999-2015-01-02-03.jl.gz'
         )
 
 

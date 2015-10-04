@@ -184,6 +184,6 @@ class EagleDataLogger(object):
         now_dt = datetime.datetime.utcfromtimestamp(last_timestamp)
         cloud_id_str = str(user_info['cloud_id'])
         return 'rainforest-logs/' + cloud_id_str + now_dt.strftime("/%Y/%m/%d") +\
-            "/iseif-rainforest-" + cloud_id_str + now_dt.strftime("-%Y-%m-%d-%H.jl")
+            "/iseif-rainforest-" + cloud_id_str + now_dt.strftime("-%Y-%m-%d-%H.jl.gz")
 
 
