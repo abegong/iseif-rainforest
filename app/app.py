@@ -29,6 +29,7 @@ tornado.options.define("redis_host", default="localhost")
 tornado.options.define("redis_port", default="6379")
 tornado.options.define("filepath", default="../data/logs/")
 tornado.options.define("log_level", default=logging.DEBUG)
+tornado.options.define("s3_bucket", default='agong-iseif-temp')
 tornado.options.define("debug", default=True)
 
 class UserHandler(tornado.web.RequestHandler):
@@ -107,7 +108,8 @@ class EventHandler(tornado.web.RequestHandler):
                 'cloud_id' : cloud_id,
                 'last_timestamp' : None,
             },
-            options.filepath
+            options.filepath,
+            options.s3_bucket,
         )
 
         self.write({'status': 'success'})
