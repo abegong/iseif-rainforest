@@ -6,6 +6,10 @@ import copy
 import requests
 import datetime
 
+class ContentError(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
 def get_instantaneous_demand(cloud_id, user_email, user_pw):
     headers = construct_headers(cloud_id, user_email, user_pw)
     # command = compose_root(get_instantaneous_demand, None)
@@ -70,6 +74,8 @@ def send(send_data,request_headers):
     #Parse and return the result        
     returned_xml_obj = etree.fromstring(req.text)
     # print etree.tostring(returned_xml_obj, pretty_print=True)
+    if returned_xml_obj.tag == 'Error':
+        raise ContentError("Rainforest API returned XML object with tag 'Error':\n"+req.text)
 
     json_obj = parse_instantaneous_demand_to_json(returned_xml_obj)
     # print json_obj
